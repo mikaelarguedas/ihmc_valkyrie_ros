@@ -34,6 +34,9 @@ install(DIRECTORY launch
   FILES_MATCHING PATTERN "*.launch"
 )
 
+catkin_install_python(PROGRAMS nodes/remove_hokuyo_from_js.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )

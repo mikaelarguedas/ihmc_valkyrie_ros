@@ -1,13 +1,30 @@
 <launch>
   <param name="use_sim_time" value="true"/>
   <arg name="use_local_build" default="false" />
+  <arg name="simulation" default="false" />
   <arg name="ihmc_network_file" default="$(find ihmc_valkyrie_ros)/configurations/IHMCNetworkParametersSim.ini" />
   <arg name="description_model" default="$(find val_description)/model/urdf/valkyrie_sim.urdf" />
+  <arg name="robot_name" default="" />
+  <arg name="model_file" default="" />
 
-  <include file="$(find ihmc_ros_common)/launch/robot_description_common.launch">
-    <arg name="robot_name" value="valkyrie" />
-    <arg name="model_file" value="$(arg description_model)" />
-  </include>
+  <param name="/$(arg robot_name)/robot_description" textfile="$(arg model_file)" />
+  <param name="/ihmc_ros/robot_name" value="$(arg robot_name)" />
+  <group if="$(arg simulation)">
+    <node name="remove_hokuyo_from_js" pkg="ihmc_valkyrie_ros" type="remove_hokuyo_from_js.py" >
+      <remap from="joint_states_in" to="/ihmc_ros/$(arg robot_name)/output/joint_states" />
+      <remap from="joint_states_out" to="/ihmc_ros/$(arg robot_name)/output/joint_states_reduced" />
+    </node>
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" >
+      <remap from="joint_states" to="/ihmc_ros/$(arg robot_name)/output/joint_states_reduced" />
+      <remap from="robot_description" to="/$(arg robot_name)/robot_description" />
+    </node>
+  </group>
+  <group unless="$(arg simulation)">
+    <include file="$(find ihmc_ros_common)/launch/robot_description_common.launch">
+      <arg name="robot_name" value="valkyrie" />
+      <arg name="model_file" value="$(arg description_model)" />
+    </include>
+  </group>
 
   <include file="$(find ihmc_valkyrie_ros)/launch/common/ihmc_valkyrie_params_common.launch" />
 
